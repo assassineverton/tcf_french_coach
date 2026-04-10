@@ -1,0 +1,180 @@
+// TCF French Coach — PostgreSQL (Supabase-compatible)
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile          UserProfile?
+  coachMessages    CoachMessage[]
+  writingPieces    WritingPiece[]
+  speakingSessions SpeakingSession[]
+  quizAttempts     QuizAttempt[]
+  bookmarks        Bookmark[]
+  mistakes         MistakeEntry[]
+  mockExams        MockExamResult[]
+  progressSnapshots ProgressSnapshot[]
+  flashcardStates  FlashcardState[]
+  listeningAttempts ListeningAttempt[]
+  readingAttempts  ReadingAttempt[]
+}
+
+model UserProfile {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examDate         DateTime?
+  targetLevel      String    @default("B2")
+  targetScoreNotes String?
+  currentEstimate  String    @default("B1")
+  dailyMinutes     Int       @default(45)
+  streakDays       Int       @default(0)
+  lastStudyDate    DateTime?
+  strengthsJson    String    @default("[]")
+  weaknessesJson   String    @default("[]")
+  studyPlanDaily   String?
+  studyPlanWeekly  String?
+  coachMemoryJson  String?
+  updatedAt        DateTime  @updatedAt
+}
+
+model CoachMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String
+  content   String   @db.Text
+  mode      String   @default("tutor")
+  metadata  String?
+  createdAt DateTime @default(now())
+}
+
+model WritingPiece {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt       String   @db.Text
+  mode         String
+  original     String   @db.Text
+  feedbackJson String   @db.Text
+  scoreBand    String?
+  createdAt    DateTime @default(now())
+}
+
+model SpeakingSession {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskType     String
+  prompt       String   @db.Text
+  transcript   String   @db.Text
+  feedbackJson String   @db.Text
+  timedSeconds Int?
+  createdAt    DateTime @default(now())
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module      String
+  topic       String
+  score       Int
+  total       Int
+  detailsJson String?
+  createdAt   DateTime @default(now())
+}
+
+model ListeningAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passageId   String
+  score       Int
+  total       Int
+  topic       String
+  difficulty  String
+  createdAt   DateTime @default(now())
+}
+
+model ReadingAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passageId   String
+  score       Int
+  total       Int
+  topic       String
+  difficulty  String
+  createdAt   DateTime @default(now())
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String   @db.Text
+  category  String
+  sourceId  String?
+  createdAt DateTime @default(now())
+}
+
+model MistakeEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String
+  pattern     String
+  examplesJson String  @default("[]")
+  count       Int      @default(1)
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([userId, category])
+}
+
+model MockExamResult {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section   String
+  score     Int
+  maxScore  Int
+  notes     String?  @db.Text
+  takenAt   DateTime @default(now())
+}
+
+model ProgressSnapshot {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date       DateTime @default(now())
+  metricsJson String  @db.Text
+}
+
+model FlashcardState {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cardId     String
+  ease       Float    @default(2.5)
+  interval   Int      @default(0)
+  repetitions Int     @default(0)
+  nextReview DateTime
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, cardId])
+}

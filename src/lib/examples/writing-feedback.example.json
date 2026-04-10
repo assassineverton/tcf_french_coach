@@ -1,0 +1,42 @@
+{
+  "grammarMistakes": [
+    {
+      "original": "je pense que c'est une bonne idée",
+      "fix": "Je pense que c’est une bonne idée.",
+      "whyFr": "Majuscule en début de phrase.",
+      "whyEn": "Capitalize sentence-initial pronoun in formal writing."
+    }
+  ],
+  "vocabulary": [
+    {
+      "original": "c'est bien",
+      "better": "cela présente un intérêt certain",
+      "noteEn": "More precise, B2-appropriate register for argumentation."
+    }
+  ],
+  "naturalness": [
+    {
+      "sentence": "Mais il y a des problèmes aussi.",
+      "moreNatural": "Il convient toutefois d’en souligner les limites."
+    }
+  ],
+  "coherence": {
+    "score1to5": 3,
+    "commentFr": "Le développement manque d’exemples concrets.",
+    "commentEn": "Add one concrete example per main idea."
+  },
+  "bLevelFit": {
+    "label": "between",
+    "rationaleEn": "Adequate range but limited nuance and formal framing for solid B2."
+  },
+  "original": "…",
+  "corrected": "…",
+  "improvedB2": "…",
+  "changeExplanation": [
+    {
+      "from": "c'est bien",
+      "to": "cela présente un intérêt certain",
+      "becauseEn": "Raises lexical precision expected at B2 in argumentation."
+    }
+  ]
+}
