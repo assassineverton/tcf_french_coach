@@ -9,26 +9,38 @@ Application web full stack pour la préparation au **TCF Canada / TCF**, centré
 - **PostgreSQL** via **Prisma** (compatible **Supabase** : même `DATABASE_URL`)
 - **OpenAI API** pour l’agent « Exam Coach » (chat, corrections structurées JSON, plans)
 
+## Architecture (refonte « premium prep »)
+
+- **Aucun scraping** ni contenu payant tiers : seuls les fichiers **que vous importez** (droits attestés) alimentent la bibliothèque PostgreSQL.
+- **Routes principales** : `/dashboard`, `/library`, `/practice/*`, `/admin/import`, `/mock-exam`, `/progress`, `/mistakes`, `/tutor`, etc.
+- **Pipeline d’import** : validation Zod (`src/lib/import/schemas.ts`), parseurs JSON / CSV / Markdown+JSON / texte (`parse-file.ts`), persistance (`ingest.ts`) + traçabilité `ContentImportBatch` (source, format, attestation légale).
+- **Démo** : `prisma/data/demo-authorized-library.json` importé au seed si la bibliothèque est vide.
+
 ## Structure du projet
 
 ```
 src/
-  app/                    # Pages & routes API
-    api/                  # profile, chat, writing/feedback, speaking/analyze, rewrite, planner, quiz, bookmarks, mock-exam, comprehension
-    .../page.tsx          # Écrans : dashboard, tutor, speaking, writing, grammar, listening, reading, planner, progress, strategy, mock-exam, history, mistakes, bookmarks, phrases
+  app/
+    dashboard/page.tsx       # Pilotage premium (compte à rebours, compétences, bibliothèque)
+    library/page.tsx         # Vue bibliothèque + lots d’import
+    admin/import/page.tsx    # Upload / collage JSON + attestation de droits
+    practice/*/page.tsx      # Oral (DB), écrit/lecture/écoute/grammaire (réutilise les écrans existants)
+    api/
+      admin/import           # POST multipart ou JSON collé
+      library                # GET compteurs + lots
+      dashboard/summary      # GET agrégats profil + tentatives + bibliothèque
+      content/speaking-prompts
   components/
-    layout/app-shell.tsx    # Navigation + thème
-    ui/                     # Cartes, boutons, onglets, champs
+    layout/app-shell.tsx
+    premium/                 # en-têtes, cartes stats, grille compétences
+    ui/
   lib/
-    agent/
-      prompts.ts            # Identité agent + instructions JSON (écrit, oral, réécriture B2, plan)
-      coach.ts              # Appels OpenAI
-    content/                # Données seed : prompts oral/écrit, connecteurs, B1→B2, passages, grammaire
-    db.ts                   # Client Prisma singleton
-    session.ts              # Cookie anonyme `tcf_user_id` + création utilisateur
+    import/                  # schémas, parse, ingest
+    agent/ … content/ …
 prisma/
-  schema.prisma             # Schéma utilisateur, profil, historiques, favoris, etc.
-  seed.ts                   # Utilisateur démo (optionnel)
+  schema.prisma
+  data/demo-authorized-library.json
+  seed.ts
 ```
 
 ## Schéma base de données (résumé)
@@ -45,6 +57,24 @@ prisma/
 | `MistakeEntry` | Erreurs récurrentes (prêt pour agrégation automatique) |
 | `MockExamResult` | Scores blancs |
 | `FlashcardState` | SRS (intervalles à activer côté UI) |
+| `ContentImportBatch` | Lot d’import (format, fichier, **rightsDeclaration**, libellé source) |
+| `SpeakingPromptContent`, `WritingPromptContent`, … | Contenus indexés (attribution + tags JSON) |
+| `ReadingPassageContent` + `ReadingQuestionContent` | Texte + QCM structurés |
+| `ListeningExerciseContent` + `ListeningQuestionContent` | Transcript + audio optionnel + QCM |
+| `GrammarDrillContent`, `VocabularyCardContent`, `PhraseBankContent` | Drills / cartes / phrases |
+| `PracticeAttempt` | Historique unifié par compétence (extensible) |
+| `MistakeLog` | Journal d’erreurs (granulaire) |
+| `MockExamSession` | Examen blanc : progression JSON, reprise, résultats |
+
+## Import JSON (schéma)
+
+Champs racine obligatoires : `sourceLabel`, `sourceAttribution`. Sections optionnelles : `speakingPrompts`, `writingPrompts`, `readingPassages` (avec `questions[]`: `prompt`, `choices[]`, `correctIndex`, `explanation`), `listeningExercises` (même principe + `transcript`, `audioUrl?`), `grammarDrills`, `vocabularyCards`, `phraseBank`.
+
+- **CSV** : colonnes minimales `type,prompt,title,taskType,level,topic,difficulty` (`type=speaking`).
+- **Markdown** : inclure un bloc de code JSON (triple backticks + `json`) conforme au schéma.
+- **Texte (.txt)** : importe un passage de lecture générique avec QCM d’appoint (à remplacer par un JSON complet pour un usage sérieux).
+
+Référence code : `src/lib/import/schemas.ts`, exemple `prisma/data/demo-authorized-library.json`.
 
 ## Architecture de l’agent « Exam Coach »
 

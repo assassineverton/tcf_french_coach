@@ -9,6 +9,7 @@ import {
   Brain,
   CalendarDays,
   ClipboardList,
+  GraduationCap,
   Headphones,
   History,
   Home,
@@ -18,6 +19,7 @@ import {
   Mic,
   Moon,
   PenLine,
+  Settings2,
   Sun,
   Target,
   Trophy,
@@ -25,21 +27,23 @@ import {
 import { useTheme } from "next-themes";
 
 const NAV = [
-  { href: "/", label: "Tableau de bord", icon: Home },
+  { href: "/dashboard", label: "Tableau de bord", icon: Home },
+  { href: "/library", label: "Bibliothèque", icon: Library },
+  { href: "/practice/speaking", label: "Oral", icon: Mic },
+  { href: "/practice/writing", label: "Écrit", icon: PenLine },
+  { href: "/practice/reading", label: "Lecture", icon: ClipboardList },
+  { href: "/practice/listening", label: "Écoute", icon: Headphones },
+  { href: "/practice/grammar", label: "Grammaire", icon: BookOpen },
   { href: "/tutor", label: "Coach IA", icon: MessageSquare },
-  { href: "/speaking", label: "Expression orale", icon: Mic },
-  { href: "/writing", label: "Expression écrite", icon: PenLine },
-  { href: "/grammar", label: "Grammaire & vocabulaire", icon: BookOpen },
-  { href: "/listening", label: "Compréhension orale", icon: Headphones },
-  { href: "/reading", label: "Compréhension écrite", icon: ClipboardList },
-  { href: "/planner", label: "Plan d’études", icon: CalendarDays },
+  { href: "/planner", label: "Planificateur", icon: CalendarDays },
   { href: "/progress", label: "Progrès", icon: LineChart },
-  { href: "/strategy", label: "Stratégie TCF", icon: Target },
+  { href: "/strategy", label: "Stratégie", icon: Target },
   { href: "/mock-exam", label: "Examen blanc", icon: Trophy },
   { href: "/history", label: "Historique", icon: History },
-  { href: "/mistakes", label: "Carnet d’erreurs", icon: Brain },
-  { href: "/bookmarks", label: "Modèles favoris", icon: Bookmark },
-  { href: "/phrases", label: "Banques de phrases", icon: Library },
+  { href: "/mistakes", label: "Erreurs", icon: Brain },
+  { href: "/bookmarks", label: "Favoris", icon: Bookmark },
+  { href: "/phrases", label: "Phrases", icon: GraduationCap },
+  { href: "/admin/import", label: "Import", icon: Settings2 },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -47,19 +51,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-[var(--card-border)] bg-[var(--background)]/80 backdrop-blur">
+    <div className="min-h-screen bg-[var(--background)]">
+      <header className="sticky top-0 z-40 border-b border-[var(--hairline)] bg-[var(--background)]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-            <span className="rounded-lg bg-brand-600 px-2 py-1 text-xs font-bold text-white dark:bg-brand-500">
+          <Link href="/dashboard" className="group flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] text-xs font-bold text-white shadow-[var(--shadow-soft)]">
               TCF
             </span>
-            <span className="hidden sm:inline">French Coach</span>
+            <div className="hidden leading-tight sm:block">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Canada prep</p>
+              <p className="font-serif text-base font-semibold">French Coach</p>
+            </div>
           </Link>
           <button
             type="button"
             aria-label="Basculer le thème"
-            className="rounded-lg border border-[var(--card-border)] p-2"
+            className="rounded-xl border border-[var(--hairline)] bg-[var(--card)] p-2 shadow-sm"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             <Sun className="hidden h-4 w-4 dark:block" />
@@ -68,35 +75,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 md:flex-row md:py-8">
-        <aside className="md:w-56 md:shrink-0">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8 md:flex-row md:py-10">
+        <aside className="md:w-60 md:shrink-0">
           <nav className="flex flex-row flex-wrap gap-1 overflow-x-auto pb-2 md:flex-col md:overflow-visible">
             {NAV.map((item) => {
-              const active = pathname === item.href;
+              const active =
+                pathname === item.href ||
+                (item.href !== "/dashboard" && pathname.startsWith(item.href));
               const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors",
+                    "flex items-center gap-2 rounded-xl px-3 py-2 text-sm whitespace-nowrap transition-colors",
                     active
-                      ? "bg-brand-600 text-white dark:bg-brand-500"
-                      : "text-[var(--muted)] hover:bg-black/5 dark:hover:bg-white/10",
+                      ? "bg-[var(--accent)] text-white shadow-[var(--shadow-soft)]"
+                      : "text-[var(--muted)] hover:bg-[var(--card)] hover:text-[var(--foreground)]",
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className="h-4 w-4 shrink-0 opacity-90" />
                   <span className="hidden lg:inline">{item.label}</span>
                 </Link>
               );
             })}
           </nav>
-          <p className="mt-4 hidden text-xs text-[var(--muted)] md:block">
-            Préparation sérieuse au TCF Canada — objectif B2.
+          <p className="mt-5 hidden text-xs leading-relaxed text-[var(--muted)] md:block">
+            Contenus importés par vous uniquement — pas de scraping de sites membres.
           </p>
         </aside>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1 pb-16">{children}</main>
       </div>
     </div>
   );

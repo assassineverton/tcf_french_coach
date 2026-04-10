@@ -1,4 +1,4 @@
-// TCF French Coach — PostgreSQL (Supabase-compatible)
+// TCF French Coach — PostgreSQL (user-owned / authorized content only)
 // https://pris.ly/d/prisma-schema
 
 generator client {
@@ -10,6 +10,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ——— User & legacy activity ———
+
 model User {
   id        String   @id @default(cuid())
   email     String?  @unique
@@ -17,18 +19,22 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profile          UserProfile?
-  coachMessages    CoachMessage[]
-  writingPieces    WritingPiece[]
-  speakingSessions SpeakingSession[]
-  quizAttempts     QuizAttempt[]
-  bookmarks        Bookmark[]
-  mistakes         MistakeEntry[]
-  mockExams        MockExamResult[]
-  progressSnapshots ProgressSnapshot[]
-  flashcardStates  FlashcardState[]
-  listeningAttempts ListeningAttempt[]
-  readingAttempts  ReadingAttempt[]
+  profile             UserProfile?
+  coachMessages       CoachMessage[]
+  writingPieces       WritingPiece[]
+  speakingSessions    SpeakingSession[]
+  quizAttempts        QuizAttempt[]
+  bookmarks           Bookmark[]
+  mistakes            MistakeEntry[]
+  mockExams           MockExamResult[]
+  progressSnapshots   ProgressSnapshot[]
+  flashcardStates     FlashcardState[]
+  listeningAttempts   ListeningAttempt[]
+  readingAttempts     ReadingAttempt[]
+  contentImportBatches ContentImportBatch[]
+  practiceAttempts    PracticeAttempt[]
+  mistakeLogs         MistakeLog[]
+  mockExamSessions    MockExamSession[]
 }
 
 model UserProfile {
@@ -82,6 +88,7 @@ model SpeakingSession {
   transcript   String   @db.Text
   feedbackJson String   @db.Text
   timedSeconds Int?
+  libraryItemId String?
   createdAt    DateTime @default(now())
 }
 
@@ -133,15 +140,15 @@ model Bookmark {
 }
 
 model MistakeEntry {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category    String
-  pattern     String
-  examplesJson String  @default("[]")
-  count       Int      @default(1)
-  lastSeenAt  DateTime @default(now())
-  createdAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     String
+  pattern      String
+  examplesJson String   @default("[]")
+  count        Int      @default(1)
+  lastSeenAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   @@index([userId, category])
 }
@@ -158,23 +165,238 @@ model MockExamResult {
 }
 
 model ProgressSnapshot {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date       DateTime @default(now())
-  metricsJson String  @db.Text
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime @default(now())
+  metricsJson String   @db.Text
 }
 
 model FlashcardState {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cardId     String
-  ease       Float    @default(2.5)
-  interval   Int      @default(0)
-  repetitions Int     @default(0)
-  nextReview DateTime
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cardId      String
+  ease        Float    @default(2.5)
+  interval    Int      @default(0)
+  repetitions Int      @default(0)
+  nextReview  DateTime
+  updatedAt   DateTime @updatedAt
 
   @@unique([userId, cardId])
+}
+
+// ——— Authorized content library (imports) ———
+
+model ContentImportBatch {
+  id                 String   @id @default(cuid())
+  userId             String?
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt          DateTime @default(now())
+  format             String
+  originalFileName   String?
+  rightsDeclaration  String   @db.Text
+  sourceLabel        String
+  notes              String?  @db.Text
+  itemCountsJson     String   @default("{}")
+
+  speakingPrompts    SpeakingPromptContent[]
+  writingPrompts     WritingPromptContent[]
+  readingPassages    ReadingPassageContent[]
+  listeningExercises ListeningExerciseContent[]
+  grammarDrills      GrammarDrillContent[]
+  vocabularyCards    VocabularyCardContent[]
+  phraseBankEntries  PhraseBankContent[]
+}
+
+model SpeakingPromptContent {
+  id                 String              @id @default(cuid())
+  importBatchId      String?
+  importBatch        ContentImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  sourceAttribution  String
+  rightsNote         String?             @db.Text
+  externalRef        String?
+  title              String
+  prompt             String              @db.Text
+  taskType           String
+  level              String
+  topic              String
+  difficulty         String              @default("B2")
+  timeGuideSec       Int?
+  hintsEn            String?             @db.Text
+  tagsJson           String              @default("[]")
+  createdAt          DateTime            @default(now())
+}
+
+model WritingPromptContent {
+  id                 String              @id @default(cuid())
+  importBatchId      String?
+  importBatch        ContentImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  sourceAttribution  String
+  rightsNote         String?             @db.Text
+  externalRef        String?
+  title              String
+  instruction        String              @db.Text
+  mode               String
+  genre              String              @default("article")
+  wordTarget         String?
+  level              String
+  topic              String
+  difficulty         String              @default("B2")
+  tagsJson           String              @default("[]")
+  createdAt          DateTime            @default(now())
+}
+
+model ReadingPassageContent {
+  id                 String              @id @default(cuid())
+  importBatchId      String?
+  importBatch        ContentImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  sourceAttribution  String
+  rightsNote         String?             @db.Text
+  externalRef        String?
+  title              String
+  body               String              @db.Text
+  level              String
+  topic              String
+  difficulty         String
+  tagsJson           String              @default("[]")
+  createdAt          DateTime            @default(now())
+  questions          ReadingQuestionContent[]
+}
+
+model ReadingQuestionContent {
+  id            String                @id @default(cuid())
+  passageId     String
+  passage       ReadingPassageContent @relation(fields: [passageId], references: [id], onDelete: Cascade)
+  prompt        String                @db.Text
+  choicesJson   String
+  correctIndex  Int
+  explanation   String                @db.Text
+  trapTip       String?               @db.Text
+  order         Int                   @default(0)
+}
+
+model ListeningExerciseContent {
+  id                 String              @id @default(cuid())
+  importBatchId      String?
+  importBatch        ContentImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  sourceAttribution  String
+  rightsNote         String?             @db.Text
+  externalRef        String?
+  title              String
+  transcript         String              @db.Text
+  audioUrl           String?
+  audioNote          String?             @db.Text
+  level              String
+  topic              String
+  difficulty         String
+  tagsJson           String              @default("[]")
+  createdAt          DateTime            @default(now())
+  questions          ListeningQuestionContent[]
+}
+
+model ListeningQuestionContent {
+  id           String                   @id @default(cuid())
+  exerciseId   String
+  exercise     ListeningExerciseContent @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  prompt       String                   @db.Text
+  choicesJson  String
+  correctIndex Int
+  explanation  String                   @db.Text
+  trapTip      String?                  @db.Text
+  order        Int                      @default(0)
+}
+
+model GrammarDrillContent {
+  id                 String              @id @default(cuid())
+  importBatchId      String?
+  importBatch        ContentImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  sourceAttribution  String
+  rightsNote         String?             @db.Text
+  externalRef        String?
+  topic              String
+  prompt             String              @db.Text
+  answer             String
+  alternativesJson   String              @default("[]")
+  explanationFr      String              @db.Text
+  explanationEn      String              @db.Text
+  level              String              @default("B2")
+  tagsJson           String              @default("[]")
+  createdAt          DateTime            @default(now())
+}
+
+model VocabularyCardContent {
+  id                 String              @id @default(cuid())
+  importBatchId      String?
+  importBatch        ContentImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  sourceAttribution  String
+  rightsNote         String?             @db.Text
+  deckName           String
+  front              String              @db.Text
+  back               String              @db.Text
+  context            String?             @db.Text
+  level              String              @default("B2")
+  tagsJson           String              @default("[]")
+  createdAt          DateTime            @default(now())
+}
+
+model PhraseBankContent {
+  id                 String              @id @default(cuid())
+  importBatchId      String?
+  importBatch        ContentImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  sourceAttribution  String
+  rightsNote         String?             @db.Text
+  phraseFr           String              @db.Text
+  phraseEn           String              @db.Text
+  category           String
+  register           String              @default("neutral")
+  tagsJson           String              @default("[]")
+  createdAt          DateTime            @default(now())
+}
+
+// ——— Unified practice / exam attempts ———
+
+model PracticeAttempt {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill            String
+  itemType         String
+  itemId           String
+  score            Int?
+  maxScore         Int?
+  durationSeconds  Int?
+  metadataJson     String?
+  createdAt        DateTime @default(now())
+
+  @@index([userId, skill])
+  @@index([userId, createdAt])
+}
+
+model MistakeLog {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill        String
+  itemType     String
+  itemId       String
+  questionId   String?
+  summary      String   @db.Text
+  detailJson   String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, skill])
+}
+
+model MockExamSession {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode            String
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  timeLimitSec    Int?
+  progressJson    String    @db.Text
+  resultsJson     String?
+  autoSaved       Boolean   @default(true)
 }

@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "sourceLabel": "Démo locale (droits vérifiés par l’équipe produit)",
+  "sourceAttribution": "TCF French Coach — jeu de démonstration",
+  "rightsNote": "Contenu original à des fins de démo ; remplacez par vos propres supports autorisés.",
+  "speakingPrompts": [
+    {
+      "title": "Demander un rendez-vous",
+      "prompt": "Vous téléphonez à une clinique pour prendre rendez-vous et demander les documents à apporter.",
+      "taskType": "information",
+      "level": "B2",
+      "topic": "santé",
+      "difficulty": "B2",
+      "timeGuideSec": 120,
+      "hintsEn": "Formal register, clarify date and documents.",
+      "tags": ["oral", "tcf"]
+    }
+  ],
+  "writingPrompts": [
+    {
+      "title": "Courriel au service des inscriptions",
+      "instruction": "Rédigez un courriel formel pour demander le calendrier des sessions et les pièces requises.",
+      "mode": "exam",
+      "genre": "email",
+      "wordTarget": "180–220 mots",
+      "level": "B2",
+      "topic": "administratif",
+      "difficulty": "B2",
+      "tags": ["écrit", "formel"]
+    }
+  ],
+  "readingPassages": [
+    {
+      "title": "Avis — transport en commun",
+      "body": "La ville expérimente une navette électrique gratuite entre la gare et le centre-ville jusqu’au 31 août. Les horaires sont affichés aux arrêts. Les usagers sont invités à répondre à une enquête en ligne pour évaluer le service.",
+      "level": "B2",
+      "topic": "ville",
+      "difficulty": "B2",
+      "questions": [
+        {
+          "prompt": "Quel est l’objectif principal du texte ?",
+          "choices": [
+            "Interdire les voitures en centre-ville",
+            "Informer sur une navette expérimentale",
+            "Augmenter le prix des transports",
+            "Fermer la gare"
+          ],
+          "correctIndex": 1,
+          "explanation": "Le texte annonce une expérimentation avec dates et participation des usagers.",
+          "trapTip": "Ne pas confondre avec une interdiction générale des voitures."
+        }
+      ]
+    }
+  ],
+  "listeningExercises": [
+    {
+      "title": "Message vocal — livraison",
+      "transcript": "Bonjour, votre colis sera livré demain entre 14h et 17h. En cas d’absence, reprogrammez via le lien reçu par courriel.",
+      "audioNote": "Remplacez par votre fichier audio autorisé (URL ou hébergement interne).",
+      "level": "B2",
+      "topic": "services",
+      "difficulty": "B2",
+      "questions": [
+        {
+          "prompt": "Que faire si vous n’êtes pas disponible ?",
+          "choices": [
+            "Refuser le colis définitivement",
+            "Reprogrammer via le lien reçu par courriel",
+            "Se rendre au bureau sans rendez-vous",
+            "Attendre un nouvel appel automatique"
+          ],
+          "correctIndex": 1,
+          "explanation": "Le message indique explicitement la reprogrammation par courriel."
+        }
+      ]
+    }
+  ],
+  "grammarDrills": [
+    {
+      "topic": "subjonctif",
+      "prompt": "Complétez : Il faut que tu ___ à l’heure. (être)",
+      "answer": "sois",
+      "alternatives": [],
+      "explanationFr": "Après il faut que → subjonctif présent.",
+      "explanationEn": "il faut que triggers subjunctive.",
+      "level": "B2",
+      "tags": ["grammaire"]
+    }
+  ],
+  "vocabularyCards": [
+    {
+      "deckName": "TCF — connecteurs",
+      "front": "en revanche",
+      "back": "on the other hand (formal contrast)",
+      "context": "Écrit argumentatif",
+      "level": "B2",
+      "tags": ["connecteurs"]
+    }
+  ],
+  "phraseBank": [
+    {
+      "phraseFr": "Je me permets de vous contacter concernant…",
+      "phraseEn": "I am writing regarding…",
+      "category": "formal_email",
+      "register": "formal",
+      "tags": ["courriel"]
+    }
+  ]
+}
